@@ -83,7 +83,7 @@
         @media (width: 600px) and (height: 810px) {
             .live-score-container {
                 gap: 50px; /* Separation between scores for vertical setup */
-                top: 10%;  /* Move vertically: adjust this to shift the block up or down */
+                top: 12%;  /* Move vertically: adjust this to shift the block up or down */
                 right: 1%;
             }
             .score-text {
@@ -130,12 +130,12 @@
         
         let videoSrc = "";
         if (width === 768 && height === 320) {
-            videoSrc = "./video/ec_vs_ger.mp4";
+            videoSrc = "./video/hor.mp4";
         } else if (width === 600 && height === 800) {
-            videoSrc = "./video/ec_vs_ger_vert.mp4";
+            videoSrc = "./video/ver.mp4";
         } else {
             // Default logic based on orientation if exact sizes don't match
-            videoSrc = (height > width) ? "./video/ec_vs_ger_vert.mp4" : "./video/ec_vs_ger.mp4";
+            videoSrc = (height > width) ? "./video/ver.mp4" : "./video/hor.mp4";
         }
 
         // Only update and reload if the source actually changes
