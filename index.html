@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Live Game - MEX vs ECU</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        body {
+            font-family: sans-serif;
+        }
+
+        #video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        #main-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Simplified score container with vertical alignment */
+        .live-score-container {
+            position: absolute;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            color: white;
+            transition: opacity 0.3s ease;
+            
+            /* HIGHLIGHT: To move the entire score block vertically, adjust this 'top' or use 'margin-top' */
+            top: 0%; 
+        }
+
+        .score-text {
+            font-weight: bold;
+            text-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+            line-height: 1;
+        }
+
+        /* 
+           HIGHLIGHT: 
+           - To separate the scores from each other, adjust the 'gap' property.
+           - To move the scores vertically, adjust the 'top' property in the media queries below.
+        */
+
+        /* Specific CSS for Horizontal Screen (768x320) */
+        @media (width: 768px) and (height: 320px) {
+            .live-score-container {
+                gap: 5%; /* Separation between scores for horizontal setup */
+                top: 22%;   /* Move vertically: adjust this to shift the block up or down */
+            }
+            .score-text {
+                font-size: 90px;
+            }
+        }
+
+        /* Specific CSS for Vertical Screen (600x800) */
+        @media (width: 600px) and (height: 810px) {
+            .live-score-container {
+                gap: 50px; /* Separation between scores for vertical setup */
+                top: 10%;  /* Move vertically: adjust this to shift the block up or down */
+                right: 1%;
+            }
+            .score-text {
+                font-size: 120px;
+            }
+        }
+
+        /* Specific CSS for Horizontal Screen (1920*768) */
+        @media (width: 1920px) and (height: 768px) {
+            .live-score-container {
+                gap: 5%; /* Separation between scores for horizontal setup */
+                top: 23%;   /* Move vertically: adjust this to shift the block up or down */
+            }
+            .score-text {
+                font-size: 240px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="main-container">
+    <!-- The video source is handled dynamically by JavaScript below -->
+    <video id="video" autoplay muted loop playsinline preload="auto"></video>
+
+    <!-- Simplified Layout: No flags, only scores vertically aligned -->
+    <div id="mainCard" class="live-score-container">
+        <div id="home-score" class="score-text"></div>
+        <!-- Vertical separator managed by CSS gap -->
+        <div id="away-score" class="score-text"></div>
+    </div>
+</div>
+
+<script>
+    /**
+     * Logic for Screen Size and Video Selection:
+     * Shows 'ec_vs_ger.mp4' for 768x320 (horizontal)
+     * Shows 'ec_vs_ger_vert.mp4' for 600x800 (vertical)
+     */
+    function updateVideoSource() {
+        const video = document.getElementById('video');
+        const params = new URLSearchParams(window.location.search);
+        const width = parseInt(params.get('width')) || window.innerWidth;
+        const height = parseInt(params.get('height')) || window.innerHeight;
+        
+        let videoSrc = "";
+        if (width === 768 && height === 320) {
+            videoSrc = "./video/ec_vs_ger.mp4";
+        } else if (width === 600 && height === 800) {
+            videoSrc = "./video/ec_vs_ger_vert.mp4";
+        } else {
+            // Default logic based on orientation if exact sizes don't match
+            videoSrc = (height > width) ? "./video/ec_vs_ger_vert.mp4" : "./video/ec_vs_ger.mp4";
+        }
+
+        // Only update and reload if the source actually changes
+        const currentSrc = video.src;
+        const absoluteVideoPath = new URL(videoSrc, window.location.href).href;
+        
+        if (currentSrc !== absoluteVideoPath) {
+            video.src = videoSrc;
+            video.load();
+        }
+    }
+
+    // Initialize video and listen for window size changes
+    updateVideoSource();
+    window.addEventListener('resize', updateVideoSource);
+
+    /**
+     * Score Logic:
+     * Getting the score from the server and managing local storage.
+     * Match: Ecuador vs Alemania
+     */
+    const GAME_ID = "mexico_vs_ecuador";
+    const STORAGE_KEY = "mexico_vs_ecuador_score";
+    
+    // Load initial score from local storage or default to 0-0
+    let previousNumbers = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [0, 0];
+    document.getElementById("home-score").textContent = previousNumbers[0];
+    document.getElementById("away-score").textContent = previousNumbers[1];
+
+    async function loadData() {
+        try {
+            // const res = await fetch("https://doradobet-server-qczt.onrender.com/data?gameId=16933952");
+            const res = await fetch("http://localhost:9009/data?gameId=16933952");
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            
+            const data = await res.json();
+            
+            if (!data.score || data.score.trim() === "") return;
+
+            // Parse score from format like "Team A -> 1, Team B -> 2"
+            const scoreParts = data.score.split(", ");
+            
+            if (scoreParts.length === 2) {
+                const homeScore = parseInt(scoreParts[0].split(" -> ")[1]);
+                const awayScore = parseInt(scoreParts[1].split(" -> ")[1]);
+                const currentNumbers = [homeScore, awayScore];
+                
+                const savedScore = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [0, 0];
+
+                // Update UI and storage if the score changed
+                if (currentNumbers[0] !== savedScore[0] || currentNumbers[1] !== savedScore[1]) {
+                    document.getElementById("home-score").textContent = currentNumbers[0];
+                    document.getElementById("away-score").textContent = currentNumbers[1];
+                    
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(currentNumbers));
+                    previousNumbers = currentNumbers;
+                }
+            }
+        } catch (error) { console.error("Error loading data:", error); }
+    }
+
+    // Fetch data immediately and then every second
+    loadData();
+    setInterval(loadData, 3000);
+</script>
+</body>
+</html>
