@@ -68,41 +68,35 @@
            - To move the scores vertically, adjust the 'top' property in the media queries below.
         */
 
-        /* Specific CSS for Horizontal Screen (768x320) */
-        @media (width: 768px) and (height: 320px) {
-            .live-score-container {
-                gap: 5%; /* Separation between scores for horizontal setup */
-                top: 22%;   /* Move vertically: adjust this to shift the block up or down */
-            }
-            .score-text {
-                font-size: 90px;
-            }
+        /* Horizontal 768x320 */
+        .layout-768x320 .live-score-container {
+            gap: 5%;
+            top: 22%;
         }
-
-        /* Specific CSS for Vertical Screen (600x800) */
-        @media (min-width: 590px) and (max-width: 610px)
-               and (min-height: 800px) and (max-height: 820px) {
         
-            .live-score-container {
-                gap: 50px;
-                top: 12%;
-                right: 1%;
-            }
-        
-            .score-text {
-                font-size: 120px;
-            }
+        .layout-768x320 .score-text {
+            font-size: 90px;
         }
-
-        /* Specific CSS for Horizontal Screen (1920*768) */
-        @media (width: 1920px) and (height: 768px) {
-            .live-score-container {
-                gap: 5%; /* Separation between scores for horizontal setup */
-                top: 23%;   /* Move vertically: adjust this to shift the block up or down */
-            }
-            .score-text {
-                font-size: 240px;
-            }
+        
+        /* Vertical 600x810 */
+        .layout-600x810 .live-score-container {
+            gap: 50px;
+            top: 12%;
+            right: 1%;
+        }
+        
+        .layout-600x810 .score-text {
+            font-size: 120px;
+        }
+        
+        /* Horizontal 1920x768 */
+        .layout-1920x768 .live-score-container {
+            gap: 5%;
+            top: 23%;
+        }
+        
+        .layout-1920x768 .score-text {
+            font-size: 240px;
         }
     </style>
 </head>
@@ -125,31 +119,48 @@
      * Shows 'ec_vs_ger.mp4' for 768x320 (horizontal)
      * Shows 'ec_vs_ger_vert.mp4' for 600x800 (vertical)
      */
-    function updateVideoSource() {
-        const video = document.getElementById('video');
-        const params = new URLSearchParams(window.location.search);
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        
-        let videoSrc = "";
-        if (width === 768 && height === 320) {
-            videoSrc = "./video/hor.mp4";
-        } else if (width === 600 && height === 810) {
-            videoSrc = "./video/ver.mp4";
-        } else {
-            // Default logic based on orientation if exact sizes don't match
-            videoSrc = (height > width) ? "./video/ver.mp4" : "./video/hor.mp4";
-        }
-
-        // Only update and reload if the source actually changes
-        const currentSrc = video.src;
-        const absoluteVideoPath = new URL(videoSrc, window.location.href).href;
-        
-        if (currentSrc !== absoluteVideoPath) {
-            video.src = videoSrc;
-            video.load();
-        }
-    }
+     function updateVideoSource() {
+         const video = document.getElementById("video");
+         const body = document.body;
+     
+         const width = window.innerWidth;
+         const height = window.innerHeight;
+     
+         // Remove previous layout classes
+         body.classList.remove(
+             "layout-768x320",
+             "layout-600x810",
+             "layout-1920x768"
+         );
+     
+         let videoSrc = "";
+     
+         if (width === 768 && height === 320) {
+             videoSrc = "./video/hor.mp4";
+             body.classList.add("layout-768x320");
+     
+         } else if (width === 600 && height === 810) {
+             videoSrc = "./video/ver.mp4";
+             body.classList.add("layout-600x810");
+     
+         } else if (width === 1920 && height === 768) {
+             videoSrc = "./video/hor.mp4";
+             body.classList.add("layout-1920x768");
+     
+         } else {
+             // Default
+             videoSrc = (height > width)
+                 ? "./video/ver.mp4"
+                 : "./video/hor.mp4";
+         }
+     
+         const absoluteVideoPath = new URL(videoSrc, window.location.href).href;
+     
+         if (video.src !== absoluteVideoPath) {
+             video.src = videoSrc;
+             video.load();
+         }
+     }
 
     // Initialize video and listen for window size changes
     updateVideoSource();
