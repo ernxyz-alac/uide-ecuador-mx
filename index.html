@@ -135,24 +135,32 @@
      
          let videoSrc = "";
      
-         if (width === 768 && height === 320) {
-             videoSrc = "./video/hor.mp4";
-             body.classList.add("layout-768x320");
-     
-         } else if (width === 600 && height === 810) {
-             videoSrc = "./video/ver.mp4";
-             body.classList.add("layout-600x810");
-     
-         } else if (width === 1920 && height === 768) {
-             videoSrc = "./video/hor.mp4";
-             body.classList.add("layout-1920x768");
-     
-         } else {
-             // Default
-             videoSrc = (height > width)
-                 ? "./video/ver.mp4"
-                 : "./video/hor.mp4";
-         }
+        if (
+            width >= 758 && width <= 778 &&
+            height >= 310 && height <= 330
+        ) {
+            videoSrc = "./video/hor.mp4";
+            body.classList.add("layout-768x320");
+        
+        } else if (
+            width >= 590 && width <= 610 &&
+            height >= 800 && height <= 820
+        ) {
+            videoSrc = "./video/ver.mp4";
+            body.classList.add("layout-600x810");
+        
+        } else if (
+            width >= 1910 && width <= 1930 &&
+            height >= 758 && height <= 778
+        ) {
+            videoSrc = "./video/hor.mp4";
+            body.classList.add("layout-1920x768");
+        
+        } else {
+            videoSrc = (height > width)
+                ? "./video/ver.mp4"
+                : "./video/hor.mp4";
+        }
      
          const absoluteVideoPath = new URL(videoSrc, window.location.href).href;
      
